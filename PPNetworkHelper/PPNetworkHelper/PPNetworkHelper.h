@@ -123,8 +123,6 @@ typedef void(^PPNetworkStatus)(PPNetworkStatusType status);
 + (__kindof NSURLSessionTask *)GET:(NSString *)URL
                         parameters:(id)parameters
                            success:(PPHttpRequestSuccess)success
-
-
                            failure:(PPHttpRequestFailed)failure;
 /**
  *  GET请求,自动缓存
@@ -236,6 +234,15 @@ typedef void(^PPNetworkStatus)(PPNetworkStatusType status);
                                        success:(void(^)(NSString *filePath))success
                                        failure:(PPHttpRequestFailed)failure;
 
+/**
+ 缓存总大小（MB，带2位小数）
+ */
++(CGFloat)totlalCacheSize;
+
+/**
+ 删除所有缓存
+ */
++(void)removeAllHttpCache;
 
 /*
  **************************************  说明  **********************************************

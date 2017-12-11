@@ -354,6 +354,18 @@ static AFHTTPSessionManager *_sessionManager;
     return _allSessionTask;
 }
 
++(CGFloat)totlalCacheSize{
+    
+    NSInteger totalBytes = [PPNetworkCache getAllHttpCacheSize];
+    CGFloat mbytes = [NSString stringWithFormat:@"%.2f",totalBytes/1024/1024.f].doubleValue;
+    NSLog(@"网络缓存大小cache = %fMB",mbytes);
+    return mbytes;
+}
+
++(void)removeAllHttpCache{
+    [PPNetworkCache removeAllHttpCache];
+}
+
 #pragma mark - 初始化AFHTTPSessionManager相关属性
 /**
  开始监测网络状态
