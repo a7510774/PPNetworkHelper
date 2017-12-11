@@ -123,22 +123,21 @@ typedef void(^PPNetworkStatus)(PPNetworkStatusType status);
 + (__kindof NSURLSessionTask *)GET:(NSString *)URL
                         parameters:(id)parameters
                            success:(PPHttpRequestSuccess)success
-                           failure:(PPHttpRequestFailed)failure;
 
+
+                           failure:(PPHttpRequestFailed)failure;
 /**
  *  GET请求,自动缓存
  *
  *  @param URL           请求地址
  *  @param parameters    请求参数
- *  @param responseCache 缓存数据的回调
  *  @param success       请求成功的回调
  *  @param failure       请求失败的回调
  *
  *  @return 返回的对象可取消请求,调用cancel方法
  */
 + (__kindof NSURLSessionTask *)GET:(NSString *)URL
-                        parameters:(id)parameters
-                     responseCache:(PPHttpRequestCache)responseCache
+                        parametersCache:(id)parameters
                            success:(PPHttpRequestSuccess)success
                            failure:(PPHttpRequestFailed)failure;
 
@@ -160,17 +159,15 @@ typedef void(^PPNetworkStatus)(PPNetworkStatusType status);
 /**
  *  POST请求,自动缓存
  *
- *  @param URL           请求地址
- *  @param parameters    请求参数
- *  @param responseCache 缓存数据的回调
- *  @param success       请求成功的回调
- *  @param failure       请求失败的回调
+ *  @param URL        请求地址
+ *  @param parameters 请求参数
+ *  @param success    请求成功的回调
+ *  @param failure    请求失败的回调
  *
  *  @return 返回的对象可取消请求,调用cancel方法
  */
 + (__kindof NSURLSessionTask *)POST:(NSString *)URL
-                         parameters:(id)parameters
-                      responseCache:(PPHttpRequestCache)responseCache
+                         parametersCache:(id)parameters
                             success:(PPHttpRequestSuccess)success
                             failure:(PPHttpRequestFailed)failure;
 

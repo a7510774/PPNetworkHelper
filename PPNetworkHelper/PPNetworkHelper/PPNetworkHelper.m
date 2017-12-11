@@ -99,7 +99,15 @@ static AFHTTPSessionManager *_sessionManager;
                parameters:(id)parameters
                   success:(PPHttpRequestSuccess)success
                   failure:(PPHttpRequestFailed)failure {
-    return [self GET:URL parameters:parameters responseCache:nil success:success failure:failure];
+     return [self GET:URL parameters:parameters isCache:NO success:success failure:failure];
+}
+#pragma mark - GET请求自动缓存
++ (__kindof NSURLSessionTask *)GET:(NSString *)URL
+                   parametersCache:(id)parameters
+                           success:(PPHttpRequestSuccess)success
+                           failure:(PPHttpRequestFailed)failure{
+    
+    return [self GET:URL parameters:parameters isCache:YES success:success failure:failure];
 }
 
 #pragma mark - POST请求无缓存
@@ -107,33 +115,54 @@ static AFHTTPSessionManager *_sessionManager;
                 parameters:(id)parameters
                    success:(PPHttpRequestSuccess)success
                    failure:(PPHttpRequestFailed)failure {
-    return [self POST:URL parameters:parameters responseCache:nil success:success failure:failure];
+    return [self POST:URL parameters:parameters isCache:NO success:success failure:failure];
 }
 
-#pragma mark - GET请求自动缓存
-+ (NSURLSessionTask *)GET:(NSString *)URL
-               parameters:(id)parameters
-            responseCache:(PPHttpRequestCache)responseCache
-                  success:(PPHttpRequestSuccess)success
-                  failure:(PPHttpRequestFailed)failure {
-    //读取缓存
-    responseCache!=nil ? responseCache([PPNetworkCache httpCacheForURL:URL parameters:parameters]) : nil;
+#pragma mark - POST请求自动缓存
++ (__kindof NSURLSessionTask *)POST:(NSString *)URL
+                    parametersCache:(id)parameters
+                            success:(PPHttpRequestSuccess)success
+                            failure:(PPHttpRequestFailed)failure{
+     return [self POST:URL parameters:parameters isCache:YES success:success failure:failure];
+}
+
+
++ (__kindof NSURLSessionTask *)GET:(NSString *)URL
+                        parameters:(id)parameters
+                           isCache:(BOOL)isCache
+                           success:(PPHttpRequestSuccess)success
+                           failure:(PPHttpRequestFailed)failure{
     
     NSURLSessionTask *sessionTask = [_sessionManager GET:URL parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
         
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         
+        
         if (_isOpenLog) {PPLog(@"responseObject = %@",responseObject);}
         [[self allSessionTask] removeObject:task];
+        //回调返回实时数据
         success ? success(responseObject) : nil;
-        //对数据进行异步缓存
-        responseCache!=nil ? [PPNetworkCache setHttpCache:responseObject URL:URL parameters:parameters] : nil;
+        //缓存实时数据
+        isCache?[PPNetworkCache setHttpCache:responseObject URL:URL parameters:parameters]:nil;
         
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
         if (_isOpenLog) {PPLog(@"error = %@",error);}
         [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
+        
+        if (isCache) {
+            if ([PPNetworkCache httpCacheForURL:URL parameters:parameters]) {
+                //本地有缓存，返回缓存
+                success ? [PPNetworkCache httpCacheForURL:URL parameters:parameters] : nil;
+            }else{
+                //本地没缓存，返回失败信息
+                failure ? failure(error) : nil;
+            }
+        }else{
+            //本地没缓存，返回失败信息
+            failure ? failure(error) : nil;
+            
+        }
         
     }];
     // 添加sessionTask到数组
@@ -143,13 +172,11 @@ static AFHTTPSessionManager *_sessionManager;
 }
 
 #pragma mark - POST请求自动缓存
-+ (NSURLSessionTask *)POST:(NSString *)URL
-                parameters:(id)parameters
-             responseCache:(PPHttpRequestCache)responseCache
-                   success:(PPHttpRequestSuccess)success
-                   failure:(PPHttpRequestFailed)failure {
-    //读取缓存
-    responseCache!=nil ? responseCache([PPNetworkCache httpCacheForURL:URL parameters:parameters]) : nil;
++ (__kindof NSURLSessionTask *)POST:(NSString *)URL
+                    parameters:(id)parameters
+                            isCache:(BOOL)isCache
+                            success:(PPHttpRequestSuccess)success
+                            failure:(PPHttpRequestFailed)failure{
     
     NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
         
@@ -157,22 +184,36 @@ static AFHTTPSessionManager *_sessionManager;
         
         if (_isOpenLog) {PPLog(@"responseObject = %@",responseObject);}
         [[self allSessionTask] removeObject:task];
+        //回调返回实时数据
         success ? success(responseObject) : nil;
-        //对数据进行异步缓存
-        responseCache!=nil ? [PPNetworkCache setHttpCache:responseObject URL:URL parameters:parameters] : nil;
+        //缓存实时数据
+        isCache?[PPNetworkCache setHttpCache:responseObject URL:URL parameters:parameters]:nil;
         
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
         if (_isOpenLog) {PPLog(@"error = %@",error);}
         [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
+        
+        if (isCache) {
+            if ([PPNetworkCache httpCacheForURL:URL parameters:parameters]) {
+                //本地有缓存，返回缓存
+                success ? [PPNetworkCache httpCacheForURL:URL parameters:parameters] : nil;
+            }else{
+                //本地没缓存，返回失败信息
+                failure ? failure(error) : nil;
+            }
+        }else{
+            //本地没缓存，返回失败信息
+            failure ? failure(error) : nil;
+
+        }
         
     }];
-    
     // 添加最新的sessionTask到数组
     sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
     return sessionTask;
 }
+
 
 #pragma mark - 上传文件
 + (NSURLSessionTask *)uploadFileWithURL:(NSString *)URL
